@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1"/>
+<title>DRONE RUSH — Fly Beyond Limits</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0e14;font-family:'Segoe UI',system-ui,sans-serif;touch-action:none}
+#c{display:block;width:100%;height:100%}
+
+/* ===== MENU ===== */
+#menu{
+  position:fixed;inset:0;z-index:40;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(10,18,35,0.55),rgba(4,8,18,0.82));
+  color:#e8f0ff;
+}
+#menu .eyebrow{font-size:11px;letter-spacing:4px;color:rgba(140,180,210,0.7);margin-bottom:6px}
+#menu h1{
+  font-size:clamp(36px,8vw,64px);font-weight:800;letter-spacing:6px;
+  background:linear-gradient(180deg,#ffffff 20%,#a8c8e8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:4px;text-shadow:0 0 40px rgba(100,180,255,0.3);
+}
+#menu .tag{font-size:12px;letter-spacing:5px;color:#5a9ab8;margin-bottom:28px}
+#menu-panel{
+  background:rgba(12,18,30,0.82);border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;padding:18px;width:min(340px,90vw);
+  box-shadow:0 20px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05);
+  display:flex;flex-direction:column;gap:10px;
+}
+.mbtn{
+  pointer-events:auto;cursor:pointer;border:none;border-radius:12px;
+  padding:14px 20px;font-size:14px;font-weight:700;letter-spacing:2px;
+  transition:transform .15s,box-shadow .15s,background .15s;text-align:center;
+}
+.mbtn.primary{background:#e8eef8;color:#0a1020}
+.mbtn.primary:hover{background:#fff;transform:scale(1.02);box-shadow:0 4px 20px rgba(200,220,255,0.25)}
+.mbtn.secondary{background:rgba(30,40,60,0.9);color:#c8d8e8;border:1px solid rgba(255,255,255,0.06)}
+.mbtn.secondary:hover{background:rgba(45,55,80,0.95);transform:scale(1.02)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#sound-btn{
+  position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;
+  background:rgba(20,28,45,0.8);border:1px solid rgba(255,255,255,0.1);
+  color:#8ab;font-size:16px;cursor:pointer;pointer-events:auto;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ===== HUD ===== */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:20;display:none;color:#c8e0f0}
+#score-box{position:absolute;top:14px;left:16px;font-size:12px;letter-spacing:1px}
+#score-box b{display:block;font-size:22px;font-weight:800;color:#fff}
+#speed-box{position:absolute;top:18px;left:50%;transform:translateX(-50%);text-align:center}
+#speed-box .val{font-size:28px;font-weight:300;color:rgba(200,230,255,0.85);letter-spacing:2px}
+#speed-box .unit{font-size:10px;letter-spacing:2px;opacity:.5}
+#gate-info{position:absolute;top:14px;right:16px;font-size:18px;font-weight:700;color:rgba(180,220,255,0.7)}
+
+#crosshair{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:22px;height:22px;border:1.5px solid rgba(200,230,255,0.45);border-radius:50%;
+}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(200,230,255,0.45)}
+#crosshair::before{width:1.5px;height:8px;left:10px;top:-5px}
+#crosshair::after{width:8px;height:1.5px;top:10px;left:-5px}
+
+#cp-msg{
+  position:absolute;top:28%;left:50%;transform:translateX(-50%);
+  font-size:26px;font-weight:800;color:#00e8c8;opacity:0;transition:opacity .3s;
+  text-shadow:0 0 20px rgba(0,232,200,.5);letter-spacing:2px;
+}
+
+/* Mobile controls */
+.ctrl{
+  position:absolute;pointer-events:auto;border:none;border-radius:12px;
+  background:rgba(15,22,40,0.7);border:1px solid rgba(255,255,255,0.1);
+  color:rgba(200,220,240,0.85);font-size:11px;font-weight:700;letter-spacing:1px;
+  padding:12px 16px;cursor:pointer;user-select:none;-webkit-user-select:none;
+  touch-action:none;
+}
+.ctrl:active,.ctrl.on{background:rgba(0,180,220,0.35);border-color:rgba(0,220,255,0.5)}
+#btn-up{left:16px;bottom:150px}
+#btn-down{left:16px;bottom:100px}
+#btn-boost{right:16px;bottom:150px}
+#btn-brake{right:16px;bottom:100px}
+
+.stick-zone{
+  position:absolute;width:100px;height:100px;border-radius:50%;
+  background:rgba(15,22,40,0.45);border:1px solid rgba(255,255,255,0.08);
+  pointer-events:auto;touch-action:none;
+}
+#stick-l{left:20px;bottom:20px}
+#stick-r{right:20px;bottom:20px}
+.stick-knob{
+  position:absolute;width:40px;height:40px;border-radius:50%;
+  background:rgba(180,200,220,0.5);border:2px solid rgba(255,255,255,0.25);
+  left:30px;top:30px;pointer-events:none;
+}
+
+#bottom-bar{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  display:flex;gap:28px;align-items:center;font-size:11px;letter-spacing:1px;
+  background:rgba(8,14,28,0.6);padding:8px 18px;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.06);
+}
+#boost-fill{display:inline-block;width:60px;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;vertical-align:middle;margin-left:6px;overflow:hidden}
+#boost-fill i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#00b4ff,#00ffcc);border-radius:3px}
+#bottom-bar b{color:#7dffb3;font-weight:700}
+
+/* Overlays */
+#pause,#results,#settings,#controls-panel{
+  position:fixed;inset:0;z-index:35;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(4,8,18,0.88);color:#e0f0ff;
+}
+#pause h2,#results h2,#settings h2,#controls-panel h2{font-size:28px;letter-spacing:4px;margin-bottom:20px;color:#a8d0f0}
+#results .big{font-size:42px;font-weight:800;margin:8px 0;color:#00e8c8}
+#controls-panel pre{font-family:inherit;font-size:13px;line-height:1.9;color:rgba(180,210,235,0.85);text-align:left;background:rgba(20,30,50,0.6);padding:16px 24px;border-radius:12px}
+
+#fps{position:absolute;top:8px;right:8px;font-size:10px;color:rgba(100,160,200,0.35);font-family:monospace;z-index:50}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="menu">
+  <button id="sound-btn" title="Sound">🔊</button>
+  <div class="eyebrow">AERO / RACE OPS</div>
+  <h1>DRONE RUSH</h1>
+  <div class="tag">FLY BEYOND LIMITS</div>
+  <div id="menu-panel">
+    <div class="mbtn primary" id="btn-race">START RACE</div>
+    <div class="mbtn secondary" id="btn-free">FREE FLIGHT</div>
+    <div class="row2">
+      <div class="mbtn secondary" id="btn-settings">SETTINGS</div>
+      <div class="mbtn secondary" id="btn-controls">CONTROLS</div>
+    </div>
+    <div class="row2">
+      <div class="mbtn secondary" id="btn-trial">TIME TRIAL</div>
+      <div class="mbtn secondary" id="btn-challenge">CHALLENGE</div>
+    </div>
+  </div>
+</div>
+
+<div id="hud">
+  <div id="score-box">SCORE<br><b id="score">0</b></div>
+  <div id="speed-box"><div class="val" id="spd">0</div><div class="unit">KM/H</div></div>
+  <div id="gate-info"><span id="gate">0</span> / <span id="gate-max">8</span></div>
+  <div id="crosshair"></div>
+  <div id="cp-msg"></div>
+
+  <button class="ctrl" id="btn-up">UP</button>
+  <button class="ctrl" id="btn-down">DOWN</button>
+  <button class="ctrl" id="btn-boost">BOOST</button>
+  <button class="ctrl" id="btn-brake">BRAKE</button>
+
+  <div class="stick-zone" id="stick-l"><div class="stick-knob" id="knob-l"></div></div>
+  <div class="stick-zone" id="stick-r"><div class="stick-knob" id="knob-r"></div></div>
+
+  <div id="bottom-bar">
+    <span>ALTITUDE <b id="alt">13</b> M</span>
+    <span>BOOST <span id="boost-fill"><i id="boost-bar"></i></span></span>
+    <span>TIME <b id="time">00:00.00</b></span>
+  </div>
+</div>
+
+<div id="pause">
+  <h2>PAUSED</h2>
+  <div class="mbtn primary" id="btn-resume" style="min-width:200px;margin:6px">RESUME</div>
+  <div class="mbtn secondary" id="btn-restart" style="min-width:200px;margin:6px">RESTART</div>
+  <div class="mbtn secondary" id="btn-tomenu" style="min-width:200px;margin:6px">MAIN MENU</div>
+</div>
+
+<div id="results">
+  <h2>RACE COMPLETE</h2>
+  <div class="big" id="final-score">0</div>
+  <div style="opacity:.7;margin-bottom:18px" id="final-time">Time: 00:00</div>
+  <div class="mbtn primary" id="btn-again" style="min-width:200px;margin:6px">RACE AGAIN</div>
+  <div class="mbtn secondary" id="btn-tomenu2" style="min-width:200px;margin:6px">MAIN MENU</div>
+</div>
+
+<div id="settings">
+  <h2>SETTINGS</h2>
+  <div style="margin:12px 0;font-size:14px">Quality</div>
+  <div class="row2" style="width:280px;margin-bottom:16px">
+    <div class="mbtn secondary" data-q="low">LOW</div>
+    <div class="mbtn secondary" data-q="med">MEDIUM</div>
+  </div>
+  <div class="mbtn primary" id="btn-set-close" style="min-width:180px">CLOSE</div>
+</div>
+
+<div id="controls-panel">
+  <h2>CONTROLS</h2>
+  <pre>W / ↑     Forward thrust
+S / ↓     Brake / reverse
+A / D     Strafe left / right
+SPACE     Ascend
+SHIFT     Descend
+MOUSE     Look (click to lock)
+Q / E     Roll
+V         Toggle camera
+ESC       Pause
+
+Mobile: virtual sticks + buttons</pre>
+  <div class="mbtn primary" id="btn-ctrl-close" style="min-width:180px;margin-top:16px">CLOSE</div>
+</div>
+
+<div id="fps">60</div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x6a8498);
+scene.fog = new THREE.FogExp2(0x7a94a8, 0.0045);
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.3, 800);
+camera.position.set(0, 12, 25);
+
+scene.add(new THREE.HemisphereLight(0xb0c8e0, 0x1a2030, 0.9));
+const sun = new THREE.DirectionalLight(0xd0e0f0, 1.1);
+sun.position.set(40, 80, 20);
+scene.add(sun);
+scene.add(new THREE.AmbientLight(0x405060, 0.4));
+
+/* ===== CITY ===== */
+const world = new THREE.Group();
+scene.add(world);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(400, 400),
+  new THREE.MeshStandardMaterial({ color: 0x1a222e, metalness: 0.2, roughness: 0.9 })
+);
+ground.rotation.x = -Math.PI / 2;
+world.add(ground);
+
+const road = new THREE.Mesh(
+  new THREE.PlaneGeometry(14, 400),
+  new THREE.MeshStandardMaterial({ color: 0x121820, metalness: 0.1, roughness: 0.85 })
+);
+road.rotation.x = -Math.PI / 2;
+road.position.y = 0.05;
+world.add(road);
+
+const rng = s => { let x = Math.sin(s * 127.1) * 43758.5453; return x - Math.floor(x); };
+
+const bGeo = new THREE.BoxGeometry(1, 1, 1);
+const bMat = new THREE.MeshStandardMaterial({ color: 0x1e2836, metalness: 0.3, roughness: 0.75, emissive: 0x0a1520, emissiveIntensity: 0.15 });
+const buildings = new THREE.InstancedMesh(bGeo, bMat, 120);
+const dummy = new THREE.Object3D();
+let bi = 0;
+for (let i = 0; i < 200 && bi < 120; i++) {
+  const side = i % 2 === 0 ? -1 : 1;
+  const z = -180 + (i * 3.2) % 360;
+  const x = side * (12 + rng(i) * 8 + (rng(i + 5) * 20));
+  if (Math.abs(x) < 10) continue;
+  const h = 12 + rng(i + 10) * 45;
+  const w = 5 + rng(i + 20) * 8;
+  const d = 5 + rng(i + 30) * 8;
+  dummy.position.set(x, h / 2, z);
+  dummy.scale.set(w, h, d);
+  dummy.updateMatrix();
+  buildings.setMatrixAt(bi++, dummy.matrix);
+}
+buildings.instanceMatrix.needsUpdate = true;
+buildings.count = bi;
+world.add(buildings);
+
+// Window lights
+const wMat = new THREE.MeshBasicMaterial({ color: 0x6a9ab8 });
+for (let i = 0; i < 60; i++) {
+  const side = i % 2 === 0 ? -1 : 1;
+  const z = -160 + rng(i + 100) * 320;
+  const x = side * (14 + rng(i + 110) * 25);
+  const y = 5 + rng(i + 120) * 35;
+  const win = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, 0.6), wMat);
+  win.position.set(x, y, z);
+  world.add(win);
+}
+
+/* ===== CHECKPOINTS ===== */
+const cps = [];
+const cpZ = [-30, -60, -95, -130, -160, -100, -55, -20];
+const cpX = [0, 3, -4, 2, 0, -3, 4, 0];
+const cpY = [10, 14, 12, 16, 11, 15, 13, 10];
+const ringGeo = new THREE.TorusGeometry(4.5, 0.28, 12, 32);
+const ringIdle = new THREE.MeshStandardMaterial({ color: 0x2a4a55, emissive: 0x0a2030, emissiveIntensity: 0.3, metalness: 0.5, roughness: 0.35 });
+const ringActive = new THREE.MeshStandardMaterial({ color: 0x00e8d0, emissive: 0x00c8b0, emissiveIntensity: 1.1, metalness: 0.5, roughness: 0.25 });
+const ringDone = new THREE.MeshStandardMaterial({ color: 0x1a2a30, emissive: 0x050a10, emissiveIntensity: 0.1, metalness: 0.3, roughness: 0.6 });
+
+cpZ.forEach((z, i) => {
+  const m = new THREE.Mesh(ringGeo, i === 0 ? ringActive : ringIdle);
+  m.position.set(cpX[i], cpY[i], z);
+  m.rotation.y = Math.PI / 2;
+  world.add(m);
+  cps.push({ mesh: m, pos: new THREE.Vector3(cpX[i], cpY[i], z), done: false });
+});
+
+/* ===== DRONE ===== */
+const drone = new THREE.Group();
+scene.add(drone);
+
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1e28, metalness: 0.7, roughness: 0.3, emissive: 0x0a1020, emissiveIntensity: 0.2 });
+const cyanMat = new THREE.MeshStandardMaterial({ color: 0x00d4e8, metalness: 0.5, roughness: 0.25, emissive: 0x00a0b8, emissiveIntensity: 0.9 });
+const propMat = new THREE.MeshStandardMaterial({ color: 0x2a2e38, metalness: 0.4, roughness: 0.5 });
+
+drone.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.28, 1.5), bodyMat));
+const top = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 0.9), bodyMat);
+top.position.y = 0.16;
+drone.add(top);
+
+const arms = [{ x: 0.75, z: 0.75 }, { x: -0.75, z: 0.75 }, { x: 0.75, z: -0.75 }, { x: -0.75, z: -0.75 }];
+const props = [];
+arms.forEach((a, i) => {
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.07, 0.9), bodyMat);
+  arm.position.set(a.x * 0.5, 0, a.z * 0.5);
+  arm.lookAt(a.x, 0, a.z);
+  drone.add(arm);
+  const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 0.12, 10), cyanMat);
+  motor.position.set(a.x, 0.06, a.z);
+  drone.add(motor);
+  const pg = new THREE.Group();
+  pg.position.set(a.x, 0.14, a.z);
+  const b1 = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.025, 0.1), propMat);
+  const b2 = b1.clone(); b2.rotation.y = Math.PI / 2;
+  pg.add(b1, b2);
+  drone.add(pg);
+  props.push(pg);
+  const led = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), new THREE.MeshBasicMaterial({ color: 0x00e8ff }));
+  led.position.set(a.x * 0.9, -0.12, a.z * 0.9);
+  drone.add(led);
+});
+
+const glow = new THREE.Mesh(
+  new THREE.TorusGeometry(0.9, 0.06, 8, 24),
+  new THREE.MeshBasicMaterial({ color: 0x00d4e8, transparent: true, opacity: 0.7 })
+);
+glow.rotation.x = Math.PI / 2;
+glow.position.y = -0.15;
+drone.add(glow);
+
+drone.scale.set(2.8, 2.8, 2.8);
+
+/* ===== STATE ===== */
+const state = {
+  phase: 'menu',
+  mode: 'race',
+  drone: { pos: new THREE.Vector3(0, 12, 15), vel: new THREE.Vector3(), yaw: 0, pitch: 0, roll: 0, speed: 0, boost: 1 },
+  camMode: 0, // 0 chase, 1 fpv
+  race: { time: 0, gate: 0, score: 0 },
+  keys: {},
+  mouseX: 0, mouseY: 0,
+  touch: { lx: 0, ly: 0, rx: 0, ry: 0, up: false, down: false, boost: false, brake: false },
+  quality: 'med'
+};
+
+/* ===== INPUT ===== */
+window.addEventListener('keydown', e => {
+  state.keys[e.code] = true;
+  if (e.code === 'KeyV' && state.phase === 'playing') state.camMode = state.camMode === 0 ? 1 : 0;
+  if (e.code === 'Escape') {
+    if (state.phase === 'playing') { state.phase = 'paused'; document.getElementById('pause').style.display = 'flex'; document.exitPointerLock(); }
+    else if (state.phase === 'paused') resume();
+  }
+  if (['Space', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
+});
+window.addEventListener('keyup', e => { state.keys[e.code] = false; });
+
+let locked = false;
+canvas.addEventListener('click', () => { if (state.phase === 'playing') canvas.requestPointerLock(); });
+document.addEventListener('pointerlockchange', () => { locked = document.pointerLockElement === canvas; });
+document.addEventListener('mousemove', e => {
+  if (!locked || state.phase !== 'playing') return;
+  state.mouseX += e.movementX * 0.0018;
+  state.mouseY += e.movementY * 0.0015;
+  state.mouseY = Math.max(-1.1, Math.min(1.1, state.mouseY));
+});
+
+/* Touch sticks */
+function setupStick(zoneId, knobId, side) {
+  const zone = document.getElementById(zoneId);
+  const knob = document.getElementById(knobId);
+  let pid = null;
+  const set = (x, y) => {
+    const r = 30;
+    const len = Math.sqrt(x * x + y * y) || 1;
+    const cx = Math.max(-r, Math.min(r, x));
+    const cy = Math.max(-r, Math.min(r, y));
+    knob.style.left = (30 + cx) + 'px';
+    knob.style.top = (30 + cy) + 'px';
+    if (side === 'l') { state.touch.lx = cx / r; state.touch.ly = -cy / r; }
+    else { state.touch.rx = cx / r; state.touch.ry = -cy / r; }
+  };
+  const reset = () => {
+    knob.style.left = '30px'; knob.style.top = '30px';
+    if (side === 'l') { state.touch.lx = 0; state.touch.ly = 0; }
+    else { state.touch.rx = 0; state.touch.ry = 0; }
+  };
+  zone.addEventListener('pointerdown', e => { pid = e.pointerId; zone.setPointerCapture(pid); const r = zone.getBoundingClientRect(); set(e.clientX - r.left - 50, e.clientY - r.top - 50); e.preventDefault(); });
+  zone.addEventListener('pointermove', e => { if (e.pointerId !== pid) return; const r = zone.getBoundingClientRect(); set(e.clientX - r.left - 50, e.clientY - r.top - 50); });
+  zone.addEventListener('pointerup', () => { pid = null; reset(); });
+  zone.addEventListener('pointercancel', () => { pid = null; reset(); });
+}
+setupStick('stick-l', 'knob-l', 'l');
+setupStick('stick-r', 'knob-r', 'r');
+
+const holdBtn = (id, key) => {
+  const el = document.getElementById(id);
+  const on = () => { state.touch[key] = true; el.classList.add('on'); };
+  const off = () => { state.touch[key] = false; el.classList.remove('on'); };
+  el.addEventListener('pointerdown', e => { on(); e.preventDefault(); });
+  el.addEventListener('pointerup', off);
+  el.addEventListener('pointerleave', off);
+  el.addEventListener('pointercancel', off);
+};
+holdBtn('btn-up', 'up');
+holdBtn('btn-down', 'down');
+holdBtn('btn-boost', 'boost');
+holdBtn('btn-brake', 'brake');
+
+/* ===== PHYSICS ===== */
+const MAX = 70, ACC = 48;
+function step(dt) {
+  const d = state.drone, k = state.keys, t = state.touch;
+  let fwd = (k['KeyW'] || k['ArrowUp'] ? 1 : 0) - (k['KeyS'] || k['ArrowDown'] ? 1 : 0);
+  let str = (k['KeyD'] || k['ArrowRight'] ? 1 : 0) - (k['KeyA'] || k['ArrowLeft'] ? 1 : 0);
+  let vert = (k['Space'] || k['KeyR'] || t.up ? 1 : 0) - (k['ShiftLeft'] || k['ShiftRight'] || k['KeyF'] || t.down ? 1 : 0);
+  fwd += t.ly; str += t.lx;
+  fwd = Math.max(-1, Math.min(1, fwd));
+  str = Math.max(-1, Math.min(1, str));
+
+  // right stick look
+  state.mouseX += t.rx * 1.8 * dt;
+  state.mouseY -= t.ry * 1.2 * dt;
+  state.mouseY = Math.max(-1.1, Math.min(1.1, state.mouseY));
+
+  d.yaw = state.mouseX;
+  d.pitch += ((-state.mouseY * 0.4 + fwd * -0.15) - d.pitch) * 4 * dt;
+  d.roll += ((str * -0.4) - d.roll) * 5 * dt;
+
+  const cy = Math.cos(d.yaw), sy = Math.sin(d.yaw);
+  let thrust = fwd * ACC;
+  const boosting = (k['Space'] === false && (k['ShiftLeft'] || t.boost)) || t.boost || k['KeyB'];
+  // Boost on dedicated / hold
+  if ((t.boost || k['KeyB']) && d.boost > 0.05) {
+    thrust *= 1.85;
+    d.boost = Math.max(0, d.boost - 0.4 * dt);
+  } else {
+    d.boost = Math.min(1, d.boost + 0.12 * dt);
+  }
+  if (t.brake || k['KeyC'] && !k['KeyW']) thrust *= 0.3;
+
+  d.vel.x += sy * thrust * dt;
+  d.vel.z += -cy * thrust * dt;
+  d.vel.x += cy * str * ACC * 0.7 * dt;
+  d.vel.z += sy * str * ACC * 0.7 * dt;
+  d.vel.y += vert * ACC * 0.75 * dt;
+  d.vel.y -= 6 * dt;
+
+  d.vel.multiplyScalar(Math.pow(0.978, dt * 60));
+  const spd = d.vel.length();
+  if (spd > MAX) d.vel.multiplyScalar(MAX / spd);
+  d.speed = spd;
+
+  d.pos.x += d.vel.x * dt;
+  d.pos.y += d.vel.y * dt;
+  d.pos.z += d.vel.z * dt;
+
+  if (d.pos.y < 3) { d.pos.y = 3; d.vel.y = Math.max(0, d.vel.y); }
+  if (d.pos.y > 80) { d.pos.y = 80; d.vel.y = Math.min(0, d.vel.y); }
+  d.pos.x = Math.max(-80, Math.min(80, d.pos.x));
+  d.pos.z = Math.max(-200, Math.min(80, d.pos.z));
+
+  drone.position.copy(d.pos);
+  drone.rotation.order = 'YXZ';
+  drone.rotation.y = d.yaw;
+  drone.rotation.x = d.pitch;
+  drone.rotation.z = d.roll;
+
+  const spin = 0.5 + spd * 0.1 + (t.boost ? 0.4 : 0);
+  props.forEach((p, i) => { p.rotation.y += spin * (i % 2 ? 1 : -1); });
+  glow.material.opacity = 0.4 + d.boost * 0.4 + (t.boost ? 0.3 : 0);
+}
+
+function updateCam() {
+  const d = state.drone;
+  const cy = Math.cos(d.yaw), sy = Math.sin(d.yaw);
+  if (state.camMode === 1) {
+    camera.position.copy(d.pos);
+    camera.position.y += 0.5;
+    camera.rotation.order = 'YXZ';
+    camera.rotation.y = d.yaw;
+    camera.rotation.x = d.pitch;
+    camera.rotation.z = d.roll * 0.4;
+    camera.fov = 75 + d.speed * 0.12;
+  } else {
+    camera.position.set(d.pos.x - sy * 11, d.pos.y + 4.5, d.pos.z + cy * 11);
+    camera.lookAt(d.pos.x + sy * 6, d.pos.y + 1, d.pos.z - cy * 6);
+    camera.fov = 65 + d.speed * 0.1;
+  }
+  camera.updateProjectionMatrix();
+}
+
+function updateRace(dt) {
+  if (state.mode === 'free') return;
+  state.race.time += dt;
+  const d = state.drone;
+  const gi = state.race.gate;
+  if (gi < cps.length) {
+    const cp = cps[gi];
+    if (d.pos.distanceTo(cp.pos) < 5.5) {
+      cp.done = true;
+      cp.mesh.material = ringDone;
+      state.race.gate++;
+      state.race.score += 500 + Math.floor(d.speed * 3);
+      const msg = document.getElementById('cp-msg');
+      msg.textContent = gi + 1 >= cps.length ? 'FINISH!' : 'CHECKPOINT ' + (gi + 1);
+      msg.style.opacity = '1';
+      setTimeout(() => { msg.style.opacity = '0'; }, 1000);
+      if (state.race.gate < cps.length) cps[state.race.gate].mesh.material = ringActive;
+      else {
+        state.phase = 'results';
+        document.getElementById('hud').style.display = 'none';
+        document.getElementById('results').style.display = 'flex';
+        document.getElementById('final-score').textContent = state.race.score;
+        const t = state.race.time;
+        document.getElementById('final-time').textContent = 'Time: ' + fmtTime(t);
+        document.exitPointerLock();
+      }
+    }
+  }
+}
+
+function fmtTime(t) {
+  const m = Math.floor(t / 60);
+  const s = (t % 60).toFixed
